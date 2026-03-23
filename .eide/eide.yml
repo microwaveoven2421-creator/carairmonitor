@@ -8,12 +8,14 @@ srcDirs:
   - FATFS
   - Middlewares
   - Drivers
-  - ../../0_Hardwares/SDcard
-  - ../../0_Hardwares/ble_jdy23
 virtualFolder:
   name: <virtual_root>
   files: []
-  folders: []
+  folders:
+    - name: note
+      files:
+        - path: note.txt
+      folders: []
 dependenceList: []
 outDir: build
 miscInfo:
