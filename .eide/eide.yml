@@ -9,6 +9,7 @@ srcDirs:
   - Middlewares
   - Drivers
   - ../../0_Hardwares/SDcard
+  - ../../0_Hardwares/ble_jdy23
 virtualFolder:
   name: <virtual_root>
   files: []
@@ -33,7 +34,6 @@ targets:
         - Middlewares/Third_Party/FatFs/src
         - Drivers/CMSIS/Device/ST/STM32F4xx/Include
         - Drivers/CMSIS/Include
-        - ../../0_Hardwares/SDcard
       libList: []
     excludeList: []
     toolchain: GCC
