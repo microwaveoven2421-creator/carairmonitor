@@ -13,21 +13,7 @@
 - 实时监测与控制逻辑
 ---
 ## 系统架构图
-
-```mermaid
-graph LR
-A[STM32F407] --> B[SHT31 温湿度传感器]
-A --> C[PMS5003 PM2.5传感器]
-A --> D[SCD41 CO2传感器]
-A --> E[MQ3 酒精传感器]
-
-A --> F[JDY-23 蓝牙模块]
-A --> G[SD卡存储]
-A --> H[OLED显示]
-A --> I[蜂鸣器]
-
-J[用户/手机端] --> F
----
+![输入图片说明](%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E5%9B%BE-carairmonitor.png)
 
 ## 系统流程图
 ![输入图片说明](https://foruda.gitee.com/images/1774417259617906178/2967e83c_16552579.png "系统流程图-carairmonitor.png")
