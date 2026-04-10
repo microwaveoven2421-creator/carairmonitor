@@ -60,7 +60,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint8_t UART2_RxData; // PMS5003串口接收数据变量
 /* USER CODE END 0 */
 
 /**

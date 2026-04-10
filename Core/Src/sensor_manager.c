@@ -7,7 +7,8 @@
 #include "buzzer.h"
 #include "oled.h"
 #include "jdy23.h"
-
+#include "sd_spi.h"
+#include "sdcard_app.h"
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h> 

@@ -38,6 +38,8 @@ targets:
         - Drivers/CMSIS/Include
       libList: []
     excludeList: []
+    settings:
+      debugger: cortex-debug
     toolchain: GCC
     toolchainConfigMap:
       GCC:
@@ -113,6 +115,8 @@ targets:
         - Drivers/CMSIS/Include
       libList: []
     excludeList: []
+    settings:
+      debugger: cortex-debug
     toolchain: GCC
     toolchainConfigMap:
       GCC:
