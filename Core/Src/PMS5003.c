@@ -154,7 +154,7 @@ static void PMS5003_AnalyseData(uint8_t* data_Buffer) {
 }
 
 /**
- * @brief  PMS5003数据读取函数（对标SHT31_Read_Temp_Hum）
+ * @brief  PMS5003数据读取函数
  * @note   读取缓存的PM值，返回错误码，数据存在全局变量中
  * @retval int16_t: 0-读取成功，-1-无有效数据
  */
@@ -173,7 +173,7 @@ int16_t PMS5003_Read_PM_Value(void) {
 }
 
 /**
- * @brief  PMS5003数据格式化发送（对标SHT31的打印逻辑）
+ * @brief  PMS5003数据格式化发送函数
  * @note   根据指定类型发送PM1.0/2.5/10数据，兼容原有read_pms5003函数
  * @param  huart: 串口句柄（如&huart1）
  * @param  pData: 发送缓冲区

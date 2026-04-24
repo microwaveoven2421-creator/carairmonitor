@@ -291,7 +291,7 @@ void Sensor_Manager_Collect_Alarm(void) {
         Send_Alarm_Message("CO2 Alarm", alarm_detail);
     }
 
-    // 6. 统一打印所有5个传感器数据
+    //  统一打印所有5个传感器数据
     printf("\r\n============= All Sensor Data ==============\r\n");
     if(pm25_val == 0) {// 如果pm2.5为0，显示"waiting"
         printf("Temp:%.2fC | Humidity:%.2f%% | PM2.5:waiting...\r\n", temp, hum);
