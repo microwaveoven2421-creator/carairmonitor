@@ -1,3 +1,10 @@
+/**
+ * @file    sdcard_app.h
+ * @brief   SD 卡日志记录和文件工具接口。
+ * @details 定义传感器日志记录结构体，以及高层 SD 卡读写辅助函数。
+ * @author  Microwave Oven
+ */
+
 #ifndef __SDCARD_APP_H__
 #define __SDCARD_APP_H__
 
@@ -45,6 +52,10 @@ uint8_t SD_Card_IsReady(void);
 SD_Card_Result_t SD_Card_LogSensorData(const SD_SensorRecord_t *record);
 SD_Card_Result_t SD_Card_WriteTextFile(const char *filename, const char *text);
 SD_Card_Result_t SD_Card_AppendTextFile(const char *filename, const char *text);
+SD_Card_Result_t SD_Card_ReadSensorLog(SD_SensorRecord_t *records, uint32_t max_records, uint32_t *read_count);
+SD_Card_Result_t SD_Card_ReadTextFile(const char *filename, char *buffer, uint32_t buffer_size);
+SD_Card_Result_t SD_Card_GetFileSize(const char *filename, uint32_t *size);
+SD_Card_Result_t SD_Card_DeleteFile(const char *filename);
 
 #ifdef __cplusplus
 }

@@ -1,3 +1,10 @@
+/**
+ * @file    sd_spi.c
+ * @brief   SPI 模式 SD 卡底层块设备驱动。
+ * @details 负责 SD 卡初始化、命令发送以及扇区读写通信。
+ * @author  Microwave Oven
+ */
+
 #include "sd_spi.h"
 #include "spi.h"
 #include <string.h>

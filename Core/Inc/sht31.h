@@ -1,5 +1,12 @@
 /**
  * @file    sht31.h
+ * @brief   SHT31 温湿度传感器读取接口。
+ * @details 声明初始化函数，以及缓存温度、湿度读取函数。
+ * @author  Microwave Oven
+ */
+
+/**
+ * @file    sht31.h
  * @brief   SHT31温湿度传感器模块头文件
  * @author  Microwave Oven
  * @date    2026-03-05
@@ -22,4 +29,4 @@ uint16_t SHT31_Read_Temp_Hum(void);
 int32_t SHT31_Read_Temperature(void);
 int32_t SHT31_Read_Humidity(void);
 
-#endif //! __SHT31_H 
+#endif //! __SHT31_H

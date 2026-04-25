@@ -1,3 +1,10 @@
+/**
+ * @file    sht3x_i2c.c
+ * @brief   SHT3x 低层 I2C 命令实现。
+ * @details 负责发送测量命令、读取原始数据帧、校验 CRC 并转换物理单位。
+ * @author  Microwave Oven
+ */
+
 #include "sht3x_i2c.h"
 #include "sensirion_common.h"
 #include "sensirion_i2c.h"
@@ -22,11 +29,11 @@ uint16_t sht3x_start_periodic_measurement(){
     uint8_t* buffer_ptr = communication_buffer;
     uint16_t local_offset = 0;
     
-    // 添加SHT3X周期测量命令（默认：每秒10次，Medium Repeatability）
-    // 对应枚举：SHT3X_MEASURE_PERIODIC_10MPS_MEDREP_CMD_ID = 0x2721
+    // 添加SHT3X周期测量命令（每秒0.5次，Medium Repeatability），降低传感器自热
+    // 对应枚举：SHT3X_MEASURE_PERIODIC_0_5MPS_MEDREP_CMD_ID = 0x2024
     local_offset = 
         sensirion_i2c_add_command16_to_buffer(buffer_ptr, local_offset, 
-                                                    SHT3X_MEASURE_PERIODIC_10MPS_MEDREP_CMD_ID);
+                                                    SHT3X_MEASURE_PERIODIC_0_5MPS_MEDREP_CMD_ID);
     
     // 硬件I2C发送数据（地址左移1位，因为HAL库需要7位地址+读写位）
     if (HAL_I2C_Master_Transmit(&SHT3X_I2C_HANDLE, (_i2c_address << 1), 

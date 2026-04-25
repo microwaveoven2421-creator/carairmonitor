@@ -1,3 +1,10 @@
+/**
+ * @file    buzzer.c
+ * @brief   有源蜂鸣器 PWM 驱动与报警控制。
+ * @details 封装 TIM3 PWM 频率、占空比控制，用于传感器异常时发出声音报警。
+ * @author  Microwave Oven
+ */
+
 #include "buzzer.h"
 #include "tim.h"
 

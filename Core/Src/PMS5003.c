@@ -1,4 +1,11 @@
 /**
+ * @file    PMS5003.c
+ * @brief   PMS5003 颗粒物传感器串口帧解析模块。
+ * @details 接收主动上报数据帧，校验帧校验和，并缓存 PM1.0/PM2.5/PM10 数据。
+ * @author  Microwave Oven
+ */
+
+/**
  * @brief  PMS5003激光传感器驱动（对标SHT31代码风格）
  * @note   主动式传输协议，波特率：9600bps，校验位：无，停止位：1位
  *         使用USART2--PA2-TX(接模块引脚4)、PA3-RX(接模块引脚5)
@@ -80,7 +87,10 @@ int16_t PMS5003_ReceiveData(uint8_t data) {
         case PMS5003_STATE_RECEIVE_DATA: // 接收剩余30字节数据
             s_rx_Buffer[2 + s_data_cnt++] = data;
             if(s_data_cnt >= PMS5003_DATA_LEN) { // 数据接收完成
-                s_state = PMS5003_STATE_DATA_COMPLETE;
+                PMS5003_AnalyseData(s_rx_Buffer);
+                s_state = PMS5003_STATE_IDLE;
+                s_data_cnt = 0;
+                memset(s_rx_Buffer, 0, PMS5003_FRAME_LEN);
             }
             break;
 
@@ -148,7 +158,7 @@ static void PMS5003_AnalyseData(uint8_t* data_Buffer) {
     g_PM2_5_Value = (data_Buffer[12] << 8) | data_Buffer[13];
     g_PM10_0_Value = (data_Buffer[14] << 8) | data_Buffer[15];
 
-    // // 3. 调试打印（可选）
+    // // 3. 调试打印
     // printf("PMS5003 Parse Success - PM1.0:%d | PM2.5:%d | PM10:%d μg/m³\r\n",
     //        g_PM1_0_Value, g_PM2_5_Value, g_PM10_0_Value);
 }

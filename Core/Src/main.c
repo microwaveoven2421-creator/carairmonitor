@@ -28,7 +28,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "sensor_manager.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,7 +50,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint8_t UART2_RxData; // PMS5003串口接收数据变量
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,7 +61,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t UART2_RxData; // PMS5003串口接收数据变量
+
 /* USER CODE END 0 */
 
 /**
@@ -69,7 +70,6 @@ uint8_t UART2_RxData; // PMS5003串口接收数据变量
   */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -102,13 +102,15 @@ int main(void)
   MX_USART6_UART_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
-
+  Sensor_Manager_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    Sensor_Manager_Collect_Alarm();
+    HAL_Delay(COLLECT_INTERVAL_MS); // 统一采集间隔
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -1,3 +1,10 @@
+/**
+ * @file    PMS5003.h
+ * @brief   PMS5003 颗粒物传感器读取接口。
+ * @details 声明 PM 缓存变量、串口接收处理和数据读取函数。
+ * @author  Microwave Oven
+ */
+
 #ifndef __PMS5003_H
 #define __PMS5003_H
 

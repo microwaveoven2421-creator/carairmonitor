@@ -1,4 +1,11 @@
 /**
+ * @file    sht3x_i2c.h
+ * @brief   SHT3x 低层 I2C 常量和函数声明。
+ * @details 定义 SHT3x 命令、总线配置，以及原始/转换后数据读取接口。
+ * @author  Microwave Oven
+ */
+
+/**
  * @file    sht3X_i2c.h
  * @brief   SHT3X系列传感器模块头文件
  * @author  Microwave Oven

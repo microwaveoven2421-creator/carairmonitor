@@ -1,5 +1,12 @@
 /**
  * @file    scd41.h
+ * @brief   SCD41 二氧化碳传感器访问接口。
+ * @details 声明传感器初始化和 CO2 读取函数，供传感器管理模块调用。
+ * @author  Microwave Oven
+ */
+
+/**
+ * @file    scd41.h
  * @brief   SCD41二氧化碳传感器模块头文件
  * @author  Microwave Oven
  * @date    2026-03-05
@@ -20,4 +27,4 @@
 int16_t SCD41_Init(void);
 uint16_t SCD41_Read_CO2(void);
 
-#endif //! __SCD41_H 
+#endif //! __SCD41_H

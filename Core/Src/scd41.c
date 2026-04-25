@@ -1,3 +1,10 @@
+/**
+ * @file    scd41.c
+ * @brief   SCD41 二氧化碳传感器应用封装。
+ * @details 初始化 SCD41 测量模式，并提供 CO2 浓度读取函数。
+ * @author  Microwave Oven
+ */
+
 #include "scd41.h"
 #include "scd4x_i2c.h"
 #include "sensirion_i2c_hal.h"
@@ -102,8 +109,8 @@ uint16_t SCD41_Read_CO2_Periodic(void) {
     error = scd4x_get_data_ready_status(&data_ready);
     
     if (error != NO_ERROR || !data_ready) {
-        // 数据没准备好，直接返回0，不要等
-        // printf("SCD41 data not ready (will retry next cycle)\r\n"); // 调试时可取消注释
+        // 数据没准备好，直接返回0，等待下一次调用时再尝试读取（周期性测量模式会持续更新数据）
+        // printf("SCD41 data not ready (will retry next cycle)\r\n"); // 调试用
         return 0;
     }
 

@@ -1,3 +1,10 @@
+/**
+ * @file    sht31.c
+ * @brief   SHT31 温湿度传感器应用封装。
+ * @details 初始化周期测量模式，并缓存转换后的温度和湿度数据。
+ * @author  Microwave Oven
+ */
+
 #include "sht31.h"
 #include "sht3x_i2c.h"
 #include "sensirion_i2c_hal.h"
@@ -54,8 +61,8 @@ int16_t SHT31_Init(void) {
 
 /**
  * @brief 读取SHT31的温度和湿度数据
- * @note 参考SCD41_Read_CO2实现风格，先检查数据就绪（简化版），再读取数据
- * @return 0-读取成功，非0-错误码（注：原SCD41返回CO2值，这里返回错误码更合理，数据存在全局变量中）
+ * @note 先检查数据就绪，再读取数据
+ * @return 0-读取成功，非0-错误码（返回错误码，数据存在全局变量中）
  */
 uint16_t SHT31_Read_Temp_Hum(void) {
     int16_t error = NO_ERROR;
@@ -68,7 +75,7 @@ uint16_t SHT31_Read_Temp_Hum(void) {
         error = sht3x_read_measurement(&g_temp_m_deg_c, &g_hum_m_percent_rh);
         
         if (error == NO_ERROR) {
-            // // 3. 打印数据（可选，对标SCD41的输出风格）
+            // // 3. 串口打印数据
             // printf("SHT31 Temp: %.2f °C, Hum: %.2f %%RH\r\n",
             //        (float)g_temp_m_deg_c / 1000.0f,
             //        (float)g_hum_m_percent_rh / 1000.0f);

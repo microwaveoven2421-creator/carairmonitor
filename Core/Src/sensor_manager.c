@@ -1,3 +1,10 @@
+/**
+ * @file    sensor_manager.c
+ * @brief   传感器采集、显示、记录和报警的中心调度模块。
+ * @details 负责读取各类传感器、应用校准、确认报警，并更新 OLED、蓝牙和 SD 卡日志。
+ * @author  Microwave Oven
+ */
+
 #include "sensor_manager.h"
 #include "sht31.h"
 #include "PMS5003.h"
@@ -13,9 +20,12 @@
 #include <string.h>
 #include <inttypes.h> 
 
-#define MQ3_BASE_ADC            360    // 无酒精时的基准ADC值（可根据实际零点调整）
-#define MQ3_CALIB_COEF          0.02   // 校准系数（适配12位ADC）
+#define MQ3_BASE_ADC            360    // 无酒精时的默认基准ADC值（启动时会按环境自动校准）
+#define MQ3_NOISE_DEADBAND_ADC  50     // MQ3零点附近死区，抑制空气中微小漂移
+#define MQ3_CALIB_COEF          0.002f // 校准系数（适配12位ADC，降低原始模块输出偏高问题）
 #define MQ3_ALARM_MGL           1.0f   // 酒精报警阈值(mg/L)
+#define ALARM_CONFIRM_COUNT     2      // 连续异常次数达到该值后才报警
+#define SHT31_TEMP_OFFSET_C     -2.0f  // 温度校准偏移：参考实测值调整，例如传感器高2℃则填-2.0f
 #define NO_ERROR                0       // 无错误
 
 /* ====================== 全局变量定义 ====================== */
@@ -31,6 +41,20 @@ static void SHT31_Data_Convert(int32_t temp_m_deg_c, int32_t hum_m_percent_rh,
 // ========== 适配HSE 8MHz的精准计时（无RTC） ==========
 static uint32_t sys_total_seconds = 0;  // 系统运行总秒数
 static uint32_t last_tick_ms = 0;       // 上一次计时的毫秒数
+static uint16_t mq3_baseline_adc = MQ3_BASE_ADC;
+
+static uint8_t Sensor_Alarm_Confirmed(uint8_t is_abnormal, uint8_t *counter)
+{
+    if (is_abnormal) {
+        if (*counter < ALARM_CONFIRM_COUNT) {
+            (*counter)++;
+        }
+    } else {
+        *counter = 0;
+    }
+
+    return (uint8_t)(*counter >= ALARM_CONFIRM_COUNT);
+}
 
 // 获取精准运行时间戳
 void Get_System_Time_Stamp(char *time_buf, uint8_t buf_len) {
@@ -57,7 +81,7 @@ void Get_System_Time_Stamp(char *time_buf, uint8_t buf_len) {
 // 转换ADC值为酒精浓度（mg/L），并做异常值过滤
 float MQ3_Convert_To_MgL(uint16_t adc_val) {
     // 异常值过滤：ADC值低于基准值，视为0 mg/L
-    if (adc_val <= MQ3_BASE_ADC) {
+    if (adc_val <= (uint16_t)(mq3_baseline_adc + MQ3_NOISE_DEADBAND_ADC)) {
         return 0.0f;
     }
     // 超过ADC最大值（4095），视为最大值
@@ -65,7 +89,7 @@ float MQ3_Convert_To_MgL(uint16_t adc_val) {
         adc_val = 4095;
     }
     // 标定公式计算真实浓度
-    float alcohol_mgL = (adc_val - MQ3_BASE_ADC) * MQ3_CALIB_COEF;
+    float alcohol_mgL = (adc_val - mq3_baseline_adc - MQ3_NOISE_DEADBAND_ADC) * MQ3_CALIB_COEF;
     // 保留2位小数，符合显示精度
     return (float)((int)(alcohol_mgL * 100)) / 100;
 }
@@ -123,11 +147,6 @@ static void Sensor_Show_OLED(float temp, float hum, uint16_t pm25, float alcohol
     OLED_ShowString(3, 11, "ppm");      // 优化：直接显示ppm字符串
     if(alarm_type & 0x10) OLED_ShowChar(3, 15, '!'); // CO2报警标记
   
-    // 显示报警提示（有报警时）
-    // if(alarm_type != 0) {
-    //     OLED_ShowString(0, 0, "ALARM!"); // 首行显示报警提醒
-    // }
-  
     HAL_Delay(10); // 短暂延时确保显示完成
 }
 
@@ -184,18 +203,25 @@ void Sensor_Manager_Init(void) {
     // 5. 蜂鸣器初始化
     Buzzer_Init(1000); // 设置初始频率为1kHz
 
-    // 6. 初始化SD卡
+    // 6. MQ3零点校准：上电后以当前空气读数作为基线，降低静态偏高
+    mq3_baseline_adc = MQ3_Get_AlcoholConcentration_Average(ADC_CHANNEL_0, 20);
+    if (mq3_baseline_adc < MQ3_BASE_ADC) {
+        mq3_baseline_adc = MQ3_BASE_ADC;
+    }
+    printf("MQ3 Baseline ADC: %u\r\n", mq3_baseline_adc);
+
+    // 7. 初始化SD卡
     if (SD_Card_Init() == SD_CARD_OK) {
         printf("SD Card Init Success!\r\n");
     } else {
         printf("SD Card Init Failed! Offline logging disabled.\r\n");
     }
 
-    // 7. 初始化USART6蓝牙
+    // 8. 初始化USART6蓝牙
     JDY23_Init(&huart6);
     JDY23_SendString("\r\n HELLO USER!\r\r\n"); // 蓝牙发送启动提示
 
-    // 8. 串口打印启动信息
+    // 9. 串口打印启动信息
     printf("====================================================\r\n");
     printf("        多传感器数据采集系统启动\r\n");
     printf("采集间隔 :%dms | 温度精度 :%.1f位| 湿度精度 :%.1f位\r\n",
@@ -208,13 +234,18 @@ void Sensor_Manager_Init(void) {
 /* ====================== 温湿度数据转换为精确浮点数 ====================== */
 static void SHT31_Data_Convert(int32_t temp_m_deg_c, int32_t hum_m_percent_rh, 
                                float* temp, float* hum) {
-    *temp = (float)temp_m_deg_c / 1000.0f;
+    *temp = ((float)temp_m_deg_c / 1000.0f) + SHT31_TEMP_OFFSET_C;
     *hum = (float)hum_m_percent_rh / 1000.0f;
 }
 
 /* ====================== 所有传感器数据采集+统一报警 ====================== */
 void Sensor_Manager_Collect_Alarm(void) {
     // 1. 变量定义
+    static uint8_t temp_alarm_count = 0;
+    static uint8_t hum_alarm_count = 0;
+    static uint8_t alcohol_alarm_count = 0;
+    static uint8_t pm25_alarm_count = 0;
+    static uint8_t co2_alarm_count = 0;
     float temp = 0.0f, hum = 0.0f;
     uint16_t sht31_read_err = NO_ERROR;
     int16_t pms5003_read_err = NO_ERROR;
@@ -233,13 +264,15 @@ void Sensor_Manager_Collect_Alarm(void) {
     sht31_read_err = SHT31_Read_Temp_Hum();
     if (sht31_read_err != NO_ERROR) {
         printf("SHT31 Read Data Error! Error Code: %d\r\n", sht31_read_err);
+        temp_alarm_count = 0;
+        hum_alarm_count = 0;
     } else {
         g_temp_m_deg_c = SHT31_Read_Temperature();
         g_hum_m_percent_rh = SHT31_Read_Humidity();
         SHT31_Data_Convert(g_temp_m_deg_c, g_hum_m_percent_rh, &temp, &hum);
         
         // 温度报警判断（低于低阈值 或 高于高阈值）
-        if (temp < TEMP_ALARM_LOW || temp > TEMP_ALARM_HIGH) {
+        if (Sensor_Alarm_Confirmed((uint8_t)(temp < TEMP_ALARM_LOW || temp > TEMP_ALARM_HIGH), &temp_alarm_count)) {
             alarm_type |= 0x01; // 标记温度报警
             sprintf(alarm_detail, "Temperature: %.2f°C (Normal: %.1f~%.1f°C)", 
                     temp, TEMP_ALARM_LOW, TEMP_ALARM_HIGH);
@@ -247,7 +280,7 @@ void Sensor_Manager_Collect_Alarm(void) {
         }
         
         // 湿度报警判断（低于低阈值 或 高于高阈值）
-        if (hum < HUM_ALARM_LOW || hum > HUM_ALARM_HIGH) {
+        if (Sensor_Alarm_Confirmed((uint8_t)(hum < HUM_ALARM_LOW || hum > HUM_ALARM_HIGH), &hum_alarm_count)) {
             alarm_type |= 0x02; // 标记湿度报警
             sprintf(alarm_detail, "Humidity: %.2f%% (Normal: %.1f~%.1f%%)", 
                     hum, HUM_ALARM_LOW, HUM_ALARM_HIGH);
@@ -259,11 +292,12 @@ void Sensor_Manager_Collect_Alarm(void) {
     pms5003_read_err = PMS5003_Read_PM_Value();
     if (pms5003_read_err != NO_ERROR) {
         printf("PMS5003 Read Data Error! Error Code: %d\r\n", pms5003_read_err);
+        pm25_alarm_count = 0;
     } else {
         pm25_val = g_PM2_5_Value;
         
         // PM2.5报警判断
-        if (pm25_val > PM25_ALARM_THRESHOLD && pm25_val != 0) {
+        if (Sensor_Alarm_Confirmed((uint8_t)(pm25_val > PM25_ALARM_THRESHOLD && pm25_val != 0), &pm25_alarm_count)) {
             alarm_type |= 0x08; // 标记PM2.5报警
             sprintf(alarm_detail, "PM2.5: %d ug/m3 (Threshold: %d ug/m3)", 
                     pm25_val, PM25_ALARM_THRESHOLD);
@@ -276,7 +310,7 @@ void Sensor_Manager_Collect_Alarm(void) {
     float alcohol_mgL = MQ3_Convert_To_MgL(mq3_val); // 转换为mg/L浓度值
     
     // 酒精报警判断
-    if (alcohol_mgL >= MQ3_ALARM_MGL) {
+    if (Sensor_Alarm_Confirmed((uint8_t)(alcohol_mgL >= MQ3_ALARM_MGL), &alcohol_alarm_count)) {
         alarm_type |= 0x04; // 标记酒精报警
         sprintf(alarm_detail, "Alcohol: %.2f mg/L (Threshold: %.1f mg/L)", 
                 alcohol_mgL, MQ3_ALARM_MGL);
@@ -284,7 +318,7 @@ void Sensor_Manager_Collect_Alarm(void) {
     }
 
     // 5. CO2报警判断
-    if (co2_val > CO2_ALARM_THRESHOLD && co2_val != 0) {
+    if (Sensor_Alarm_Confirmed((uint8_t)(co2_val > CO2_ALARM_THRESHOLD && co2_val != 0), &co2_alarm_count)) {
         alarm_type |= 0x10; // 标记CO2报警
         sprintf(alarm_detail, "CO2: %d ppm (Threshold: %d ppm)", 
                 co2_val, CO2_ALARM_THRESHOLD);

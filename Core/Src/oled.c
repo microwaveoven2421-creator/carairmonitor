@@ -1,3 +1,10 @@
+/**
+ * @file    oled.c
+ * @brief   基于 I2C 的 OLED 显示驱动。
+ * @details 提供底层命令/数据写入，以及字符、字符串、数字显示函数。
+ * @author  Microwave Oven
+ */
+
 #include "oled.h"
 
 /**

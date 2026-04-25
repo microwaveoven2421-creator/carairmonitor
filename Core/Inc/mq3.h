@@ -1,5 +1,12 @@
 /**
  * @file    mq3.h
+ * @brief   MQ-3 酒精传感器采样接口。
+ * @details 声明原始 ADC 读取和平均 ADC 读取函数。
+ * @author  Microwave Oven
+ */
+
+/**
+ * @file    mq3.h
  * @brief   MQ3酒精探测器模块头文件
  * @author  Microwave Oven
  * @date    2026-03-05

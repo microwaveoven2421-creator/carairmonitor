@@ -1,3 +1,10 @@
+/**
+ * @file    sd_spi.h
+ * @brief   SPI 模式 SD 卡访问接口。
+ * @details 定义 SD 卡结果码和块读写相关 API。
+ * @author  Microwave Oven
+ */
+
 #ifndef __SD_SPI_H__
 #define __SD_SPI_H__
 

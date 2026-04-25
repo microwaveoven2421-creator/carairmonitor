@@ -1,3 +1,10 @@
+/**
+ * @file    sdcard_app.c
+ * @brief   基于 FatFs 的 SD 卡应用层。
+ * @details 完成挂载、CSV 传感器日志写入，以及文本文件读写等辅助功能。
+ * @author  Microwave Oven
+ */
+
 #include "sdcard_app.h"
 #include "sd_spi.h"
 #include "fatfs.h"
@@ -309,7 +316,7 @@ SD_Card_Result_t SD_Card_LogSensorData(const SD_SensorRecord_t *record)
 
     len = snprintf(line,
                    sizeof(line),
-                   "%s,%.2f,%.2f,%u,%u,%u,%.2f,%u,0x%02X\r\n",
+                   "%s,%.2f,%.2f,%u,%u,%u,%.2f,%u,%u\r\n",
                    record->time_stamp,
                    record->temperature,
                    record->humidity,
@@ -326,6 +333,109 @@ SD_Card_Result_t SD_Card_LogSensorData(const SD_SensorRecord_t *record)
     }
 
     return SD_Card_FromAppResult(SDCARD_APP_AppendText(SDCARD_LOG_FILE, line));
+}
+
+SD_Card_Result_t SD_Card_ReadSensorLog(SD_SensorRecord_t *records, uint32_t max_records, uint32_t *read_count)
+{
+    FIL fil;
+    FRESULT fres;
+    char line[256];
+    uint32_t count = 0;
+    int parsed;
+
+    if ((records == NULL) || (max_records == 0) || (read_count == NULL))
+    {
+        return SD_CARD_ERROR;
+    }
+
+    if (!SD_Card_IsReady())
+    {
+        return SD_CARD_NOT_READY;
+    }
+
+    fres = f_open(&fil, SDCARD_LOG_FILE, FA_READ);
+    if (fres != FR_OK)
+    {
+        return SD_CARD_FATFS_ERROR;
+    }
+
+    // Skip header line
+    if (f_gets(line, sizeof(line), &fil) == NULL)
+    {
+        f_close(&fil);
+        return SD_CARD_ERROR;
+    }
+
+    while ((count < max_records) && (f_gets(line, sizeof(line), &fil) != NULL))
+    {
+        // Parse CSV line: time_stamp,temperature,humidity,pm1_0,pm2_5,pm10_0,alcohol,co2,alarm_type
+        parsed = sscanf(line, "%31[^,],%f,%f,%hu,%hu,%hu,%f,%hu,%hhu",
+                        records[count].time_stamp,
+                        &records[count].temperature,
+                        &records[count].humidity,
+                        &records[count].pm1_0,
+                        &records[count].pm2_5,
+                        &records[count].pm10_0,
+                        &records[count].alcohol_mgL,
+                        &records[count].co2,
+                        &records[count].alarm_type);
+
+        if (parsed == 9)
+        {
+            count++;
+        }
+        else
+        {
+            // Skip invalid lines
+        }
+    }
+
+    f_close(&fil);
+    *read_count = count;
+    return SD_CARD_OK;
+}
+
+SD_Card_Result_t SD_Card_ReadTextFile(const char *filename, char *buffer, uint32_t buffer_size)
+{
+    if (!SD_Card_IsReady())
+    {
+        return SD_CARD_NOT_READY;
+    }
+
+    return SD_Card_FromAppResult(SDCARD_APP_ReadText(filename, buffer, buffer_size));
+}
+
+SD_Card_Result_t SD_Card_GetFileSize(const char *filename, uint32_t *size)
+{
+    if (!SD_Card_IsReady())
+    {
+        return SD_CARD_NOT_READY;
+    }
+
+    return SD_Card_FromAppResult(SDCARD_APP_GetFileSize(filename, size));
+}
+
+SD_Card_Result_t SD_Card_DeleteFile(const char *filename)
+{
+    FRESULT fres;
+
+    if (filename == NULL)
+    {
+        return SD_CARD_ERROR;
+    }
+
+    if (!SD_Card_IsReady())
+    {
+        return SD_CARD_NOT_READY;
+    }
+
+    fres = f_unlink(filename);
+    if (fres == FR_OK)
+    {
+        return SD_CARD_OK;
+    }
+
+    return SD_CARD_FATFS_ERROR;
 }
 // #include "sdcard_app.h"
 // #include "fatfs.h"

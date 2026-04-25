@@ -1,3 +1,10 @@
+/**
+ * @file    JDY23.c
+ * @brief   JDY-23 蓝牙串口模块驱动。
+ * @details 保存蓝牙串口句柄，并提供阻塞式字符串发送接口。
+ * @author  Microwave Oven
+ */
+
 #include "jdy23.h"
 #include <string.h>
 

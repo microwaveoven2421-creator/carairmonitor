@@ -1,5 +1,12 @@
 /**
  * @file    buzzer.h
+ * @brief   无源蜂鸣器报警控制接口。
+ * @details 提供蜂鸣器初始化、启停和传感器报警播放相关函数声明。
+ * @author  Microwave Oven
+ */
+
+/**
+ * @file    buzzer.h
  * @brief   无源蜂鸣器报警模块头文件
  * @author  Microwave Oven
  * @date    2026-03-05

@@ -1,3 +1,10 @@
+/**
+ * @file    oled.h
+ * @brief   OLED 显示绘制接口。
+ * @details 声明清屏、显示字符、字符串和数字等常用显示函数。
+ * @author  Microwave Oven
+ */
+
 #ifndef __OLED_H
 #define __OLED_H
 

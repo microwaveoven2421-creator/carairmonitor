@@ -1,3 +1,10 @@
+/**
+ * @file    mq3.c
+ * @brief   MQ-3 酒精传感器 ADC 采样模块。
+ * @details 配置 ADC1 通道，提供单次采样和多次平均采样结果。
+ * @author  Microwave Oven
+ */
+
 #include "mq3.h"
 #include "main.h"
 

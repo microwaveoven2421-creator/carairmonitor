@@ -1,3 +1,10 @@
+/**
+ * @file    JDY23.h
+ * @brief   JDY-23 蓝牙串口输出接口。
+ * @details 提供蓝牙模块初始化和字符串发送函数声明。
+ * @author  Microwave Oven
+ */
+
 #ifndef __JDY23_H
 #define __JDY23_H
 

@@ -1,5 +1,12 @@
 /**
  * @file    sensor_manager.h
+ * @brief   传感器管理模块接口和阈值配置。
+ * @details 定义采集周期、报警阈值、硬件句柄宏以及对外接口函数。
+ * @author  Microwave Oven
+ */
+
+/**
+ * @file    sensor_manager.h
  * @brief   传感器管理模块头文件
  * @author  Microwave Oven
  * @date    2026-03-06
@@ -79,4 +86,4 @@ void Sensor_Manager_Collect_Alarm(void);
  */
 void Get_System_Time_Stamp(char *time_buf, uint8_t buf_len);
 
-#endif //! __SENSOR_MANAGER_H 
+#endif //! __SENSOR_MANAGER_H
